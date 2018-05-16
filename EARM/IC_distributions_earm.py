@@ -6,6 +6,7 @@ from numpy.random import lognormal
 from earm2_flat import model
 from tropical.dynamic_signatures_range import run_tropical_multi
 from pysb.simulator.scipyode import ScipyOdeSimulator
+from pysb.simulator.cupsoda import CupSodaSimulator
 
 
 def normal_mu_sigma(log_mean, cv):
@@ -49,17 +50,20 @@ parameters_ic = {idx: p for idx, p in enumerate(model.parameters) if p in model.
 parameters = np.load('calibrated_6572pars.npy')
 par_clus1 = parameters[0]
 
-samples = 5
+samples = 50000
 repeated_parameter_values = np.tile(par_clus1, (samples, 1))
 for idx, par in parameters_ic.items():
     repeated_parameter_values[:, idx] = sample_lognormal(par, size=samples)
 np.save('earm_diff_IC_par0.npy', repeated_parameter_values)
 
 t = np.linspace(0, 20000, 100)
-sims = ScipyOdeSimulator(model=model, tspan=t, param_values=repeated_parameter_values).run()
-sims.save('earm_scipyode_sims_ic.h5')
 
-signatures = run_tropical_multi(model=model, simulations=sims, cpu_cores=30)
+vol = 1e-19
+integrator_opt = {'rtol': 1e-6, 'atol': 1e-6, 'mxsteps': 20000}
+sims = CupSodaSimulator(model, tspan=t, gpu=0, memory_usage='shared_constant', vol=vol, integrator_options=integrator_opt).run(param_values=repeated_parameter_values)
+sims.save('earm_cupsoda_sims_ic.h5')
+
+signatures = run_tropical_multi(model=model, simulations=sims, cpu_cores=30, verbose=True)
 
 with open('earm_signatures_ic_par0.pickle', 'wb') as handle:
     pickle.dump(signatures, handle, protocol=pickle.HIGHEST_PROTOCOL)
