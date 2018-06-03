@@ -49,21 +49,28 @@ parameters_ic = {idx: p for idx, p in enumerate(model.parameters) if p in model.
 
 parameters = np.load('calibrated_6572pars.npy')
 par_clus1 = parameters[0]
+par_clus4 = parameters[1]
 
-samples = 50000
-repeated_parameter_values = np.tile(par_clus1, (samples, 1))
-for idx, par in parameters_ic.items():
-    repeated_parameter_values[:, idx] = sample_lognormal(par, size=samples)
-np.save('earm_diff_IC_par0.npy', repeated_parameter_values)
+#samples = 20000
+#repeated_parameter_values = np.tile(par_clus1, (samples, 1))
+#for idx, par in parameters_ic.items():
+#    repeated_parameter_values[:, idx] = sample_lognormal(par, size=samples)
+# np.save('earm_diff_IC_par0.npy', repeated_parameter_values)
+
+repeated_parameter_values = np.load('earm_diff_IC_par0.npy')
+rate_params = model.parameters_rules()
+rate_idxs = [idx for idx, p in enumerate(model.parameters) if p in rate_params]
+for par_idx in rate_idxs:
+    repeated_parameter_values[:, par_idx] = par_clus4[par_idx]
 
 t = np.linspace(0, 20000, 100)
 
 vol = 1e-19
 integrator_opt = {'rtol': 1e-6, 'atol': 1e-6, 'mxsteps': 20000}
-sims = CupSodaSimulator(model, tspan=t, gpu=0, memory_usage='shared_constant', vol=vol, integrator_options=integrator_opt).run(param_values=repeated_parameter_values)
-sims.save('earm_cupsoda_sims_ic.h5')
+sims = CupSodaSimulator(model, tspan=t, obs_species_only=False, gpu=0, memory_usage='shared_constant', vol=vol, integrator_options=integrator_opt).run(param_values=repeated_parameter_values)
+sims.save('earm_cupsoda_sims_ic_par1.h5')
 
 signatures = run_tropical_multi(model=model, simulations=sims, cpu_cores=30, verbose=True)
 
-with open('earm_signatures_ic_par0.pickle', 'wb') as handle:
+with open('earm_signatures_ic_par1.pickle', 'wb') as handle:
     pickle.dump(signatures, handle, protocol=pickle.HIGHEST_PROTOCOL)

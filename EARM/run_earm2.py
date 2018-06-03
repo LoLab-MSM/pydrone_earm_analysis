@@ -12,10 +12,10 @@ def run_simulation(param_values):
     return sim
 
 all_parameters = np.load('sampled_kd_pars.npy')
-cpu_cores = 4
+cpu_cores = 31
 p = Pool(cpu_cores)
 res = p.amap(run_simulation, all_parameters)
 sims = res.get()
 
-with open('outfile', 'wb') as fp:
+with open('sims_sampled_kd_list', 'wb') as fp:
     pickle.dump(sims, fp)

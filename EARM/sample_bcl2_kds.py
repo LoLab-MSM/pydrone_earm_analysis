@@ -33,7 +33,7 @@ def sample_kd_uniform(parameter_idx, size):
 
 parameters = np.array([p.value for p in model.parameters])
 
-samples = 10
+samples = 50000
 repeated_parameter_values = np.tile(parameters, (samples, 1))
 
 for par_idx in kr_pars_to_sample:
@@ -45,8 +45,8 @@ for par_idx in kf_pars_to_calculate:
 tspan = np.linspace(0, 20000, 100)
 
 vol= 1e-19
-integrator_opt = {'rtol': 1e-6, 'atol': 1e-6, 'mxsteps': 20000}
-sims = CupSodaSimulator(model, tspan=tspan, gpu=0, memory_usage='shared_constant', vol=vol,
+integrator_opt = {'rtol': 1e-6, 'atol': 1e-6, 'mxsteps': 200000}
+sims = CupSodaSimulator(model, tspan=tspan, gpu=0, memory_usage='shared_constant', vol=vol, obs_species_only=False,
                         integrator_options=integrator_opt).run(param_values=repeated_parameter_values)
 sims.save('earm_cupsoda_sampled_kd.h5')
 
