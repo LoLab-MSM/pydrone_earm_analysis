@@ -1,11 +1,6 @@
 from earm2_flat import model
 from tropical.cluster_analysis import AnalysisCluster
 from tropical import util
-import pickle
-
-with open('results_spectral.pickle', 'rb') as handle:
-    clusters = pickle.load(handle)
-clusters_sp37 = clusters[13]['labels']
 
 sim_0_good = 'sims_sensitivities_sampled_kd/earm_scipyode_sims_good0.h5'
 sim_0_bad = 'sims_sensitivities_sampled_kd/earm_scipyode_sims_bad0.h5'
